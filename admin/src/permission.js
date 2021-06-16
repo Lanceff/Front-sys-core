@@ -19,7 +19,7 @@ router.beforeEach(async(to, from, next) => {
 
   // determine whether the user has logged in
   const hasToken = getToken()
-
+  //token长期存在浏览器
   if (hasToken) {
     if (to.path === '/login') {
       // if is logged in, redirect to the home page
@@ -27,13 +27,12 @@ router.beforeEach(async(to, from, next) => {
       NProgress.done()
     } else {
       // determine whether the user has obtained his permission roles through getInfo
-      const hasRoles = store.getters.roles && store.getters.roles.length > 0
+      const hasRoles = store.getters.userInfo && store.getters.userInfo.roles && store.getters.userInfo.roles.length > 0
       if (hasRoles) {
         next()
       } else {
         try {
-          // get user info
-          // note: roles must be a object array! such as: ['admin'] or ,['developer','editor']
+          //根据token获取用户信息，因为jwt token中包含用户部分信息
           const { roles } = await store.dispatch('user/getInfo')
 
           // generate accessible routes map based on roles
