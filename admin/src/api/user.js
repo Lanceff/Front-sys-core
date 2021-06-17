@@ -22,3 +22,11 @@ export function logout() {
     method: 'post'
   })
 }
+
+export function getMenu(roles) {
+  return request({
+    url: '/v1/menu/list',
+    method: 'get',
+    params: { roles },
+  })
+}

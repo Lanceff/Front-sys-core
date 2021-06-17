@@ -2,6 +2,7 @@ import axios from 'axios'
 import { MessageBox, Message } from 'element-ui'
 import store from '@/store'
 import { getToken } from '@/utils/auth'
+import qs from 'qs'
 
 // create an axios instance
 const service = axios.create({
@@ -16,12 +17,17 @@ service.interceptors.request.use(
     // do something before request is sent
 
     if (store.getters.token) {
-      config.headers['Authorization'] = "Bearer "+ getToken()
+      config.headers['Authorization'] = "Bearer " + getToken()
+    }
+    if (config.method === 'get') {
+      //如果是get请求，且params是数组类型如arr=[1,2]，则转换成arr=1&arr=2
+      config.paramsSerializer = function (params) {
+        return qs.stringify(params, { arrayFormat: 'repeat' })
+      }
     }
     return config
   },
   error => {
-    // do something with request error
     console.log(error) // for debug
     return Promise.reject(error)
   }
@@ -29,16 +35,6 @@ service.interceptors.request.use(
 
 // response interceptor
 service.interceptors.response.use(
-  /**
-   * If you want to get http information such as headers or status
-   * Please return  response => response
-  */
-
-  /**
-   * Determine the request status by custom code
-   * Here is just an example
-   * You can also judge the status by HTTP Status Code
-   */
   response => {
     const res = response.data
 
