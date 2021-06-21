@@ -10,7 +10,7 @@ NProgress.configure({ showSpinner: false }) // NProgress Configuration
 
 const whiteList = ['/login'] // no redirect whitelist
 
-router.beforeEach(async(to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   // start progress bar
   NProgress.start()
 
@@ -25,7 +25,6 @@ router.beforeEach(async(to, from, next) => {
       next({ path: '/' })
       NProgress.done()
     } else {
-      // determine whether the user has obtained his permission roles through getInfo
       const hasRoles = store.getters.userInfo && store.getters.userInfo.roles && store.getters.userInfo.roles.length > 0
       if (hasRoles) {
         next()
@@ -34,12 +33,15 @@ router.beforeEach(async(to, from, next) => {
           //根据token获取用户信息，因为jwt token中包含用户部分信息
           const { roles } = await store.dispatch('user/getInfo')
           const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
+          console.log(accessRoutes)
           router.addRoutes(accessRoutes)
           next({ ...to, replace: true })
         } catch (error) {
-          // remove token and go to login page to re-login
           await store.dispatch('user/resetToken')
-          Message.error(error || 'Has Error')
+          Message.error({
+            message: error || "出现错误，请稍后再试"
+          })
+
           next(`/login?redirect=${to.path}`)
           NProgress.done()
         }

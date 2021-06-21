@@ -18,7 +18,7 @@ const mutations = {
   SET_TOKEN: (state, token) => {
     state.token = token
   },
-  SET_USER_INFO:(state, userInfo) => {
+  SET_USER_INFO: (state, userInfo) => {
     state.userInfo = userInfo
   }
 }
@@ -43,11 +43,11 @@ const actions = {
       getInfo(state.token).then(response => {
         const { data } = response
         if (!data) {
-          reject('Verification failed, please Login again.')
+          reject('获取用户信息失败.请重新登录')
         }
         const { roles } = data
         if (!roles || roles.length <= 0) {
-          reject('getInfo: roles must be a non-null array!')
+          reject('身份roles为空')
         }
         commit('SET_USER_INFO', data)
         resolve(data)

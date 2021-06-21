@@ -1,27 +1,30 @@
 import { adminInitRoutes, constantRoutes } from '@/router'
 import { getMenu } from '@/api/user'
+import Layout from '@/layout'
 
 /**
  * 根据后台返回的菜单数据组装路由
  */
 export function asyncGetRoutes(asyncMenus) {
   const res = []
-  asyncMenus.forEach(menu => {
+  for (let menu of asyncMenus) {
     let tmp = {
-      path: menu.url,
-      name: '',
-      meta: {
-        title: menu.name,
-        icon: menu.icon || ''
-      }
+      path: menu.path,
+      name: menu.name,
+      meta: menu.meta
     }
+    if (menu.pid == 0) {
+      tmp.component = Layout
+      tmp.redirect = menu.path + "/" + menu.children[0].path
+    } else {
+      tmp.component = () => import(`@views/${menu.component}/index`)
+    }
+
     if (menu.children != null && menu.children.length >= 0) {
       tmp.children = asyncGetRoutes(menu.children)
     }
     res.push(tmp)
-
-  });
-  console.log(res)
+  }
   return res
 }
 
@@ -39,27 +42,22 @@ const mutations = {
 
 const actions = {
   generateRoutes({ commit }, roles) {
-    return new Promise(resolve => {
+    return getMenu(roles).then(response => {
       let accessedRoutes
-      getMenu(roles).then(response => {
-        console.log(response)
-        let { data } = response
-        //如果是系统初始化搭建时，超级管理员没配置菜单，就给默认菜单
-        if (roles.includes('admin') && (!data || data.size <= 0)) {
-          accessedRoutes = adminInitRoutes
-        } else {
-          accessedRoutes = asyncGetRoutes(data)
-        }
-         // 404 page must be placed at the end !!!
-        accessedRoutes.push({ path: '*', redirect: '/404', hidden: true })
-      }).catch(error => {
-        reject(error)
-      })
+      let { data } = response
+      //如果是系统初始化搭建时，超级管理员没配置菜单，就给默认菜单
+      if (roles.includes('admin') && (!data || data.size <= 0)) {
+        accessedRoutes = adminInitRoutes
+      } else {
+        accessedRoutes = asyncGetRoutes(data)
+      }
+      accessedRoutes.push({ path: '*', redirect: '/404', hidden: true })
       commit('SET_ROUTES', accessedRoutes)
-      resolve(accessedRoutes)
+      return Promise.resolve(accessedRoutes);
     })
   }
 }
+
 export default {
   namespaced: true,
   state,
