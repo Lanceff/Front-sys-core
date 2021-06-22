@@ -12,7 +12,8 @@ export function asyncGetRoutes(asyncMenus) {
     let tmp = {
       path: menu.path,
       name: menu.name,
-      meta: menu.meta
+      meta: menu.meta,
+      hidden: menu.hidden
     }
     //第一层
     if (menu.pid == 0 && menu.type === "CATALOGUE") {
