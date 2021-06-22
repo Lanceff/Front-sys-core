@@ -1,6 +1,7 @@
 import { adminInitRoutes, constantRoutes } from '@/router'
 import { getMenu } from '@/api/user'
 import Layout from '@/layout'
+import { loadView } from '@/utils/index'
 
 /**
  * 根据后台返回的菜单数据组装路由
@@ -13,13 +14,14 @@ export function asyncGetRoutes(asyncMenus) {
       name: menu.name,
       meta: menu.meta
     }
-    if (menu.pid == 0) {
+    //第一层
+    if (menu.pid == 0 && menu.type === "CATALOGUE") {
+      tmp.alwaysShow = true
       tmp.component = Layout
       tmp.redirect = menu.path + "/" + menu.children[0].path
     } else {
-      tmp.component = () => import(`@views/${menu.component}/index`)
+      tmp.component = loadView(menu.component + "/index")
     }
-
     if (menu.children != null && menu.children.length >= 0) {
       tmp.children = asyncGetRoutes(menu.children)
     }
@@ -29,13 +31,11 @@ export function asyncGetRoutes(asyncMenus) {
 }
 
 const state = {
-  routes: [],
-  addRoutes: []
+  routes: []
 }
 
 const mutations = {
   SET_ROUTES: (state, routes) => {
-    state.addRoutes = routes
     state.routes = constantRoutes.concat(routes)
   }
 }

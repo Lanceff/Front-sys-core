@@ -25,15 +25,30 @@ router.beforeEach(async (to, from, next) => {
       next({ path: '/' })
       NProgress.done()
     } else {
+      //是否有身份信息
       const hasRoles = store.getters.userInfo && store.getters.userInfo.roles && store.getters.userInfo.roles.length > 0
-      if (hasRoles) {
+      //是否有路由信息
+      const hasRouters = store.getters.permission_routes && store.getters.permission_routes.length > 0
+      if (hasRoles && hasRouters) {
         next()
+      } else if (hasRoles && !hasRouters) {//刚登陆成功调到主页的情景，需要创建路由
+        try {
+          const roles = store.getters.userInfo.roles
+          const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
+          router.addRoutes(accessRoutes)
+          next({ ...to, replace: true })
+        } catch (error) {
+          await store.dispatch('user/resetToken')
+          Message.error({
+            message: error || "出现错误，请稍后再试"
+          })
+          next(`/login?redirect=${to.path}`)
+          NProgress.done()
+        }
       } else {
         try {
-          //根据token获取用户信息，因为jwt token中包含用户部分信息
           const { roles } = await store.dispatch('user/getInfo')
           const accessRoutes = await store.dispatch('permission/generateRoutes', roles)
-          console.log(accessRoutes)
           router.addRoutes(accessRoutes)
           next({ ...to, replace: true })
         } catch (error) {
