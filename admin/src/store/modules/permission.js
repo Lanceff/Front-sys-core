@@ -11,7 +11,6 @@ export function asyncGetRoutes(asyncMenus) {
   for (let menu of asyncMenus) {
     let tmp = {
       path: menu.path,
-      name: menu.name,
       meta: menu.meta,
       hidden: menu.hidden
     }

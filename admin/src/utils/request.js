@@ -47,7 +47,6 @@ service.interceptors.response.use(
       })
 
       if (res.code === 1 || res.code === 2 || res.code === 3) {
-        // to re-login
         MessageBox.confirm('token验证失败', 'Confirm logout', {
           confirmButtonText: '重新登录',
           cancelButtonText: '取消',
