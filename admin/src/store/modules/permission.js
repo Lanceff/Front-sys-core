@@ -15,7 +15,7 @@ export function asyncGetRoutes(asyncMenus) {
       hidden: menu.hidden
     }
     //第一层
-    if (menu.pid == 0 && menu.type === "CATALOGUE") {
+    if (menu.pid == 0 && menu.menuType === "CATALOGUE") {
       tmp.alwaysShow = true
       tmp.component = Layout
       tmp.redirect = menu.path + "/" + menu.children[0].path

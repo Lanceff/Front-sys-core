@@ -12,8 +12,8 @@ export function createMenu(data) {
 //修改菜单
 export function updateMenu(data) {
     return request({
-        url: '/v1/menu/' + data.id,
-        method: 'put',
+        url: '/v1/menu',
+        method: 'PUT',
         data
     })
 }

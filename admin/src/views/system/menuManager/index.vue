@@ -3,10 +3,10 @@
     <el-button type="primary" icon="el-icon-plus" style="margin-bottom:1%" @click="addRootMenu">添加菜单</el-button>
     <el-table :data="tableData" style="width: 100%; margin-bottom: 20px" row-key="id" border :tree-props="{ children: 'children', hasChildren: 'hasChildren' }">
       <el-table-column prop="title" label="菜单标题" align="center"></el-table-column>
-      <el-table-column prop="type" label="类型" align="center">
+      <el-table-column prop="menuType" label="类型" align="center">
         <template slot-scope="scope">
-          <el-tag v-if="scope.row.type === 'MENU'" type="success" effect="dark" size="small">菜单</el-tag>
-          <el-tag v-else-if="scope.row.type === 'CATALOGUE'" type="warning" effect="dark" size="small">目录</el-tag>
+          <el-tag v-if="scope.row.menuType === 'MENU'" type="success" effect="dark" size="small">菜单</el-tag>
+          <el-tag v-else-if="scope.row.menuType === 'CATALOGUE'" type="warning" effect="dark" size="small">目录</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="icon" label="图标" align="center">
@@ -14,7 +14,7 @@
           <i :class="scope.row.icon" v-if="scope.row.icon"></i>
         </template>
       </el-table-column>
-      <el-table-column prop="order" label="排序" align="center"></el-table-column>
+      <el-table-column prop="orderNum" label="排序" align="center"></el-table-column>
       <el-table-column prop="path" label="组件路径" align="center">
       </el-table-column>
       <el-table-column prop="component" label="菜单组件" align="center"> </el-table-column>
@@ -44,8 +44,8 @@
         <el-form-item label="菜单标题：" required prop="title">
           <el-input v-model="form.title"></el-input>
         </el-form-item>
-        <el-form-item label="类型：" required prop="type">
-          <el-radio-group v-model="form.type">
+        <el-form-item label="类型：" required prop="menuType">
+          <el-radio-group v-model="form.menuType">
             <el-radio label="CATALOGUE">目录</el-radio>
             <el-radio label="MENU">菜单</el-radio>
           </el-radio-group>
@@ -56,7 +56,7 @@
           </el-input>
         </el-form-item>
         <el-form-item label="菜单排序：">
-          <el-input v-model="form.order"></el-input>
+          <el-input v-model="form.orderNum"></el-input>
         </el-form-item>
         <el-form-item label="菜单路径：" required prop="path">
           <el-input v-model="form.path"></el-input>
@@ -83,7 +83,7 @@ export default {
       form: {},
       editRules: {
         title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
-        type: [{ required: true, message: '请选择类型', trigger: 'change' }],
+        menuType: [{ required: true, message: '请选择类型', trigger: 'change' }],
         path: [{ required: true, message: '请输入菜单路径', trigger: 'blur' }],
         component: [{ required: true, message: '请输入组件路径', trigger: 'blur' }]
       }
@@ -134,14 +134,17 @@ export default {
       });
     },
     submitForm(formName, opType) {
+      let { children, pTitle, ...formData } = this.form;
       let that = this;
-      this.$refs[formName].validate((valid) => {
+      delete formData.opType
+      console.log(formData)
+      this.$refs[formName].validate(valid => {
         if (valid) {
           let asyncRequest;
           if (opType == 'add') {
-            asyncRequest = createMenu(that.form);
+            asyncRequest = createMenu(formData);
           } else {
-            asyncRequest = updateMenu(that.form);
+            asyncRequest = updateMenu(formData);
           }
           asyncRequest.then(res => {
             that.$message({
