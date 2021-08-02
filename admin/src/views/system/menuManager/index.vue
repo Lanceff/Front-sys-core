@@ -32,8 +32,8 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog title="编辑" :visible.sync="isShowEditDialog" center width="35%" destroy-on-close>
-      <el-form ref="form" :model="form" :rules="editRules" label-width="150px" style="width:90%">
+    <el-dialog title="编辑" :visible.sync="isShowEditDialog" center width="32%" destroy-on-close v-if="isShowEditDialog">
+      <el-form ref="form" :model="form" :rules="editRules" label-width="150px" style="width:90%;padding-bottom:0">
         <el-form-item label="上级菜单id" required prop="pid" v-show="false">
           <el-input v-model="form.pid"></el-input>
         </el-form-item>
@@ -63,12 +63,12 @@
         </el-form-item>
         <el-form-item label="组件路径：" required prop="component">
           <el-input v-model="form.component" :disabled="form.pid==0"></el-input>
-        </el-form-item>
-        <el-form-item class="dialog-footer">
+        </el-form-item>    
+      </el-form>
+      <span slot="footer" class="dialog-footer">
           <el-button type="primary" @click="submitForm('form',form.opType)">提交</el-button>
           <el-button @click="isShowEditDialog=false">取消</el-button>
-        </el-form-item>
-      </el-form>
+        </span >
     </el-dialog>
   </div>
 </template>
