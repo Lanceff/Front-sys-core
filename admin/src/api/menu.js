@@ -24,3 +24,11 @@ export function deleteMenu(id) {
         method: 'delete',
     })
 }
+
+//修改菜单隐藏标识
+export function updateMenuHidden(menuId, hidden) {
+    return request({
+        url: `/v1/menu/hidden/${menuId}?hidden=${hidden ? 1 : 0}`,
+        method: 'PUT'
+    })
+}

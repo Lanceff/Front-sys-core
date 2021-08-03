@@ -20,7 +20,7 @@
       <el-table-column prop="component" label="菜单组件" align="center"> </el-table-column>
       <el-table-column prop="hidden" label="是否隐藏" align="center">
         <template slot-scope="scope">
-          <el-switch v-model="scope.row.hidden" active-color="#13ce66"></el-switch>
+          <el-switch v-model="scope.row.hidden" active-color="#13ce66" @change="updateMenuHidden(scope.row)"></el-switch>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" min-width="100%">
@@ -32,12 +32,12 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog title="编辑" :visible.sync="isShowEditDialog" center width="32%" destroy-on-close v-if="isShowEditDialog">
-      <el-form ref="form" :model="form" :rules="editRules" label-width="150px" style="width:90%;padding-bottom:0">
+    <el-dialog title="编辑" :visible.sync="isShowEditDialog" center width="32%" v-if="isShowEditDialog">
+      <el-form ref="form" :model="form" :rules="editRules" label-width="150px" style="width:90%;padding-bottom:0px">
         <el-form-item label="上级菜单id" required prop="pid" v-show="false">
           <el-input v-model="form.pid"></el-input>
         </el-form-item>
-        <el-form-item label="上级菜单" required>
+        <el-form-item label="上级菜单" required prop="pTitle">
           <el-input v-if="form.pTitle" v-model="form.pTitle" disabled></el-input>
           <el-input v-else value="根菜单" disabled></el-input>
         </el-form-item>
@@ -50,12 +50,10 @@
             <el-radio label="MENU">菜单</el-radio>
           </el-radio-group>
         </el-form-item>
-        <el-form-item label="菜单图标：">
-          <el-input v-model="form.icon">
-            <el-button slot="append" icon="el-icon-s-grid"></el-button>
-          </el-input>
+        <el-form-item label="菜单图标：" prop="icon">
+          <e-icon-picker v-model="form.icon" :options="options" />
         </el-form-item>
-        <el-form-item label="菜单排序：">
+        <el-form-item label="菜单排序：" prop="orderNum">
           <el-input v-model="form.orderNum"></el-input>
         </el-form-item>
         <el-form-item label="菜单路径：" required prop="path">
@@ -63,18 +61,20 @@
         </el-form-item>
         <el-form-item label="组件路径：" required prop="component">
           <el-input v-model="form.component" :disabled="form.pid==0"></el-input>
-        </el-form-item>    
+        </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-          <el-button type="primary" @click="submitForm('form',form.opType)">提交</el-button>
-          <el-button @click="isShowEditDialog=false">取消</el-button>
-        </span >
+        <el-button type="primary" @click="submitForm('form',form.opType)">提交</el-button>
+        <el-button @click="closeDialog">取消</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
 <script>
 import { getAllMenus } from "@/api/system";
-import { createMenu, updateMenu, deleteMenu } from "@/api/menu";
+import { createMenu, updateMenu, deleteMenu, updateMenuHidden } from "@/api/menu";
+import { EIconPicker } from 'e-icon-picker';
+
 export default {
   data() {
     return {
@@ -86,16 +86,53 @@ export default {
         menuType: [{ required: true, message: '请选择类型', trigger: 'change' }],
         path: [{ required: true, message: '请输入菜单路径', trigger: 'blur' }],
         component: [{ required: true, message: '请输入组件路径', trigger: 'blur' }]
+      },
+      options: {
+        FontAwesome: false,
+        ElementUI: true,
+        eIcon: false,//自带的图标，来自阿里妈妈
+        eIconSymbol: false,//是否开启彩色图标
+        addIconList: [],
+        removeIconList: []
       }
     }
   },
+  components: { EIconPicker },
   created() {
     getAllMenus().then((res) => {
-      console.log(res.data)
       this.tableData = res.data;
     })
   },
   methods: {
+    //关闭弹窗
+    closeDialog() {
+      this.isShowEditDialog = false
+      this.$refs['form'].resetFields()
+      console.log(this.form)
+    },
+    //修改隐藏
+    updateMenuHidden(row) {
+      let that = this;
+      this.$confirm('此操作将隐藏该菜单和所有子菜单, 是否继续?', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        return updateMenuHidden(row.id, row.hidden);
+      }).then(res => {
+        that.$message({
+          type: 'success',
+          message: '操作成功!'
+        });
+        setTimeout(function () {
+          location.reload();
+        }, 500)
+
+      }).catch(err => {
+        //还原
+        row.hidden = !row.hidden
+      })
+    },
     addRootMenu() {
       this.form = {
         pid: 0,
@@ -129,10 +166,12 @@ export default {
           type: 'success',
           message: '删除成功!'
         });
-      }).catch(() => {
-
-      });
+        setTimeout(function () {
+          location.reload();
+        }, 500)
+      })
     },
+    //新增或修改菜单
     submitForm(formName, opType) {
       let { children, pTitle, ...formData } = this.form;
       let that = this;
@@ -150,15 +189,27 @@ export default {
             that.$message({
               type: 'success',
               message: '操作成功!'
-            });
+            })
+            setTimeout(function () {
+              location.reload();
+            }, 500)
+          }).catch(err => {
+            that.form = {}
           })
         } else {
-          console.log('error submit!!');
+          that.$message({
+            type: 'error',
+            message: '校验失败!'
+          });
           return false;
         }
       })
     }
-
   }
 }
 </script>
+<style lang="css" scoped>
+@import "~e-icon-picker/lib/index.css";
+@import "~font-awesome/css/font-awesome.min.css";
+@import "~element-ui/lib/theme-chalk/icon.css";
+</style>
