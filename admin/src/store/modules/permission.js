@@ -9,22 +9,35 @@ import { loadView } from '@/utils/index'
 export function asyncGetRoutes(asyncMenus) {
   const res = []
   for (let menu of asyncMenus) {
-    let tmp = {
-      path: menu.path,
-      meta: menu.meta,
-      hidden: menu.hidden
-    }
-    //第一层
-    if (menu.pid == 0 && menu.component === "Layout") {
-      tmp.component = Layout
+    if (menu.pid == 0 && menu.children == null) {
+      let rootMenu = {
+        path: menu.path,
+        component: Layout,
+        children: [{
+          path: "index",
+          component: loadView(menu.component),
+          hidden: menu.hidden,
+          meta: menu.meta
+        }]
+      }
+      res.push(rootMenu)
     } else {
-      tmp.component = loadView(menu.component)
+      let tmp = {
+        path: menu.path,
+        meta: menu.meta,
+        hidden: menu.hidden,
+      }
+      if (menu.pid == 0) {
+        tmp.component = Layout
+      } else {
+        tmp.component = loadView(menu.component)
+      }
+      if (menu.children != null && menu.children.length >= 0) {
+        tmp.alwaysShow = true
+        tmp.children = asyncGetRoutes(menu.children)
+      }
+      res.push(tmp)
     }
-    if (menu.children != null && menu.children.length >= 0) {
-      tmp.alwaysShow = true
-      tmp.children = asyncGetRoutes(menu.children)
-    }
-    res.push(tmp)
   }
   return res
 }
@@ -50,6 +63,7 @@ const actions = {
       } else {
         accessedRoutes = asyncGetRoutes(data)
       }
+      console.log(accessedRoutes)
       accessedRoutes.push({ path: '*', redirect: '/404', hidden: true })
       commit('SET_ROUTES', accessedRoutes)
       return Promise.resolve(accessedRoutes);

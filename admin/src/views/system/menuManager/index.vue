@@ -1,7 +1,7 @@
 <template>
   <div style="padding: 30px">
     <el-button type="primary" icon="el-icon-plus" style="margin-bottom:1%" @click="addRootMenu">添加菜单</el-button>
-    <el-table :data="tableData" style="width: 100%; margin-bottom: 20px" row-key="id" border :tree-props="{ children: 'children', hasChildren: 'hasChildren' }">
+    <el-table :data="tableData" style="width: 100%; margin-bottom: 20px" row-key="id" border :cell-style="cellStyle" :tree-props="{ children: 'children', hasChildren: 'hasChildren' }">
       <el-table-column prop="title" label="菜单标题" align="center"></el-table-column>
       <el-table-column prop="menuType" label="类型" align="center">
         <template slot-scope="scope">
@@ -32,12 +32,12 @@
       </el-table-column>
     </el-table>
 
-    <el-dialog title="编辑" :visible.sync="isShowEditDialog" center width="32%" v-if="isShowEditDialog">
+    <el-dialog title="编辑菜单" :visible.sync="isShowEditDialog" center v-if="isShowEditDialog" width="32%">
       <el-form ref="form" :model="form" :rules="editRules" label-width="150px" style="width:90%;padding-bottom:0px">
         <el-form-item label="上级菜单id" required prop="pid" v-show="false">
           <el-input v-model="form.pid"></el-input>
         </el-form-item>
-        <el-form-item label="上级菜单" required prop="pTitle">
+        <el-form-item label="上级菜单" prop="pTitle">
           <el-input v-if="form.pTitle" v-model="form.pTitle" disabled></el-input>
           <el-input v-else value="根菜单" disabled></el-input>
         </el-form-item>
@@ -60,20 +60,22 @@
           <el-input v-model="form.path"></el-input>
         </el-form-item>
         <el-form-item label="组件路径：" required prop="component">
-          <el-input v-model="form.component" :disabled="form.pid==0"></el-input>
+          <el-input v-model="form.component"></el-input>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button type="primary" @click="submitForm('form',form.opType)">提交</el-button>
-        <el-button @click="closeDialog">取消</el-button>
+        <el-button @click="isShowEditDialog = false">取消</el-button>
       </span>
     </el-dialog>
   </div>
 </template>
 <script>
-import { getAllMenus } from "@/api/system";
+import { getAllMenus } from "@/api/menu";
 import { createMenu, updateMenu, deleteMenu, updateMenuHidden } from "@/api/menu";
 import { EIconPicker } from 'e-icon-picker';
+import _ from 'lodash'
+import { mapGetters } from 'vuex'
 
 export default {
   data() {
@@ -97,6 +99,11 @@ export default {
       }
     }
   },
+  computed: {
+    ...mapGetters([
+      'userInfo'
+    ])
+  },
   components: { EIconPicker },
   created() {
     getAllMenus().then((res) => {
@@ -104,11 +111,12 @@ export default {
     })
   },
   methods: {
-    //关闭弹窗
-    closeDialog() {
-      this.isShowEditDialog = false
-      this.$refs['form'].resetFields()
-      console.log(this.form)
+    cellStyle({ row, column, rowIndex, columnIndex }) {
+      if (columnIndex == 0) {
+        return "text-align:left;padding-left:2% !important;"
+      } else {
+        return '';
+      }
     },
     //修改隐藏
     updateMenuHidden(row) {
@@ -136,7 +144,6 @@ export default {
     addRootMenu() {
       this.form = {
         pid: 0,
-        component: 'Layout',
         opType: 'add'
       }
       this.isShowEditDialog = true
@@ -150,7 +157,7 @@ export default {
       this.isShowEditDialog = true
     },
     handleEdit(row) {
-      this.form = row
+      this.form = _.cloneDeep(row)
       this.form.opType = 'edit'
       this.isShowEditDialog = true
     },
@@ -174,8 +181,9 @@ export default {
     //新增或修改菜单
     submitForm(formName, opType) {
       let { children, pTitle, ...formData } = this.form;
-      let that = this;
+      formData.updateBy = this.userInfo.username
       delete formData.opType
+      let that = this;
       console.log(formData)
       this.$refs[formName].validate(valid => {
         if (valid) {
@@ -193,8 +201,6 @@ export default {
             setTimeout(function () {
               location.reload();
             }, 500)
-          }).catch(err => {
-            that.form = {}
           })
         } else {
           that.$message({

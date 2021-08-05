@@ -118,5 +118,5 @@ export function param2Obj(url) {
 
 //懒加载
 export const loadView = (view) => {
-  return (resolve) => require([`@/views/${view}`], resolve)
+  return (resolve) => require([`@/views${view}`], resolve)
 };
