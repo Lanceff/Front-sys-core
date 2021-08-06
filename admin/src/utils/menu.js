@@ -4,7 +4,7 @@ export function getLeafMenuIds(menus) {
         if (menu.children == null) {
             leafMenuIds.push(menu.id)
         } else {
-            leafMenuIds.concat(getLeafMenuIds(menu.children))
+            leafMenuIds = leafMenuIds.concat(getLeafMenuIds(menu.children))
         }
     }
     return leafMenuIds;

@@ -118,7 +118,7 @@ export default {
       }).then(res => {
         let leafMenuIds = getLeafMenuIds(this.menuTree,);
         console.log(leafMenuIds)
-        this.selectKeys = res.data.filter((item) => { return !leafMenuIds.includes(item) });
+        this.selectKeys = res.data.filter((item) => { return leafMenuIds.includes(item) });
 
         this.roleId = roleId
         this.isShowMenuDialog = true
