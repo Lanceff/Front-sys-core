@@ -1,6 +1,6 @@
 import request from '@/utils/request'
 
-export function getAllRole(){
+export function getAllRole() {
     return request({
         url: '/v1/role',
         method: 'get',
@@ -36,5 +36,13 @@ export function getRoleMenuId(roleId) {
     return request({
         url: '/v1/roleMenu/' + roleId,
         method: 'get',
+    })
+}
+//给角色分配菜单
+export function assignRoleMenu(roleId, menuIds) {
+    return request({
+        url: '/v1/roleMenu/' + roleId,
+        method: 'put',
+        data: { data: menuIds },
     })
 }

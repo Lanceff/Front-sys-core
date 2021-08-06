@@ -183,7 +183,6 @@ export default {
       let { children, pTitle, ...formData } = this.form;
       formData.updateBy = this.userInfo.username
       delete formData.opType
-      let that = this;
       console.log(formData)
       this.$refs[formName].validate(valid => {
         if (valid) {
@@ -194,7 +193,7 @@ export default {
             asyncRequest = updateMenu(formData);
           }
           asyncRequest.then(res => {
-            that.$message({
+            this.$message({
               type: 'success',
               message: '操作成功!'
             })
@@ -203,7 +202,7 @@ export default {
             }, 500)
           })
         } else {
-          that.$message({
+          this.$message({
             type: 'error',
             message: '校验失败!'
           });
