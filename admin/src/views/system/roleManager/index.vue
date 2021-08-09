@@ -1,7 +1,7 @@
 <template>
   <div style="padding: 30px">
     <el-button type="primary" icon="el-icon-plus" style="margin-bottom:1%" @click="addRole">添加角色</el-button>
-    <el-table :data="tableData" border style="width: 100%">
+    <el-table :data="tableData" border style="width: 100%" ref="table">
       <el-table-column prop="roleName" label="角色名" align="center"></el-table-column>
       <el-table-column prop="roleSign" label="角色标识" align="center"></el-table-column>
       <el-table-column prop="remark" label="备注" align="center"></el-table-column>
@@ -83,6 +83,11 @@ export default {
     ])
   },
   methods: {
+    reloadTable() {
+      getAllRole().then((res) => {
+        this.tableData = res.data;
+      })
+    },
     addRole() {
       this.form = {
         opType: 'add'
@@ -95,6 +100,7 @@ export default {
       this.isShowEditDialog = true
     },
     handleDelete(roleId) {
+      let that = this
       this.$confirm('此操作将删除此角色, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -107,7 +113,8 @@ export default {
           message: '删除成功!'
         });
         setTimeout(function () {
-          location.reload();
+         that.reloadTable()
+         that.isShowEditDialog = false
         }, 500)
       })
     },
@@ -137,6 +144,7 @@ export default {
         })
     },
     submitForm(formName, opType) {
+      let that = this
       let { createTime, updateTime, ...formData } = this.form;
       formData.updateBy = this.userInfo.username
       delete formData.opType
@@ -155,7 +163,8 @@ export default {
               message: '操作成功!'
             })
             setTimeout(function () {
-              location.reload();
+              that.isShowEditDialog = false
+              that.reloadTable();
             }, 500)
           })
         } else {

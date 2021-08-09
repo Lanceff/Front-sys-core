@@ -30,3 +30,11 @@ export function getMenu(roles) {
     params: { roles },
   })
 }
+
+export function getAllUser(query) {
+  return request({
+    url: '/v1/user',
+    method: 'get',
+    data: query
+  })
+}

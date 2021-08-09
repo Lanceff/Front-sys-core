@@ -1,7 +1,7 @@
 <template>
   <div style="padding: 30px">
     <el-button type="primary" icon="el-icon-plus" style="margin-bottom:1%" @click="addRootMenu">添加菜单</el-button>
-    <el-table :data="tableData" style="width: 100%; margin-bottom: 20px" row-key="id" border :cell-style="cellStyle" :tree-props="{ children: 'children', hasChildren: 'hasChildren' }">
+    <el-table :data="tableData" style="width: 100%; margin-bottom: 20px" row-key="id" border :cell-style="cellStyle" :tree-props="{ children: 'children', hasChildren: 'hasChildren' }" ref="table">
       <el-table-column prop="title" label="菜单标题" align="center"></el-table-column>
       <el-table-column prop="menuType" label="类型" align="center">
         <template slot-scope="scope">
@@ -111,6 +111,11 @@ export default {
     })
   },
   methods: {
+    reloadTable() {
+      getAllMenus().then((res) => {
+        this.tableData = res.data;
+      })
+    },
     cellStyle({ row, column, rowIndex, columnIndex }) {
       if (columnIndex == 0) {
         return "text-align:left;padding-left:2% !important;"
@@ -162,6 +167,7 @@ export default {
       this.isShowEditDialog = true
     },
     handleDelete(id) {
+      let that = this
       this.$confirm('此操作将删除此菜单以及菜单和所有子菜单, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -174,12 +180,13 @@ export default {
           message: '删除成功!'
         });
         setTimeout(function () {
-          location.reload();
+          that.reloadTable();
         }, 500)
       })
     },
     //新增或修改菜单
     submitForm(formName, opType) {
+      let that = this
       let { children, pTitle, ...formData } = this.form;
       formData.updateBy = this.userInfo.username
       delete formData.opType
@@ -198,14 +205,15 @@ export default {
               message: '操作成功!'
             })
             setTimeout(function () {
-              location.reload();
+              that.reloadTable();
+              that.isShowEditDialog = false
             }, 500)
           })
         } else {
           this.$message({
             type: 'error',
             message: '校验失败!'
-          });
+          })
           return false;
         }
       })
