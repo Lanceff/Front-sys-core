@@ -8,7 +8,7 @@
         <el-input v-model="searchForm.nickName" placeholder="请输入用户名"></el-input>
       </el-form-item>
       <el-form-item label="用户角色" prop="roleId">
-        <el-select v-model="searchForm.roleId" placeholder="请选择用户角色">
+        <el-select v-model="searchForm.roleId" placeholder="请选择用户角色" clearable>
           <el-option v-for="item in roles" :label="item.roleName" :value="item.id" :key="item.id"></el-option>
         </el-select>
       </el-form-item>
@@ -26,6 +26,11 @@
           <el-avatar size="large" shape="square" :src="scope.row.avatar"></el-avatar>
         </template>
       </el-table-column>
+      <el-table-column prop="roles" label="用户角色" align="center">
+        <template slot-scope="scope">
+          <span v-for="role in scope.row.roles" :key="role">{{role.roleName}}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="sex" label="性别" align="center" width="80%">
         <template slot-scope="scope">
           <span v-if="scope.row.sex==1">男</span>
@@ -39,32 +44,48 @@
       <el-table-column prop="status" label="状态" align="center" width="80%">
         <template slot-scope="scope">
           <el-tag v-if="scope.row.status==1" size="mini" ype='success' effect="dark">正常</el-tag>
-          <el-tag v-else-if="scope.row.status==0" size="mini" type='info' effect="dark">正常</el-tag>
+          <el-tag v-else-if="scope.row.status==0" size="mini" type='info' effect="dark">禁用</el-tag>
           <el-tag v-else size="mini" type='danger' effect="dark">异常</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" min-width="100%">
         <template slot-scope="scope">
-          <el-button size="mini" type="danger" @click="handleDelete(scope.row.id)">禁用</el-button>
-          <el-button size="mini" type="success" @click="showAssignMenu(scope.row.id)">分配角色</el-button>
-          <el-button size="mini" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
+          <el-button size="mini" type="danger" @click="handleForbid(scope.row.id,0)" v-if="scope.row.status==1">禁用</el-button>
+          <el-button size="mini" type="info" @click="handleForbid(scope.row.id,1)" v-else>解禁</el-button>
+          <el-button size="mini" type="success" @click="showAssignRole(scope.row.id)">分配角色</el-button>
+          <!-- <el-button size="mini" type="primary" @click="handleEdit(scope.row)">编辑</el-button> -->
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination background layout="total, sizes, prev, pager, next, jumper" :current-page="pageParam.pageNo" :page-sizes="[5, 10, 20, 40]" :page-size="pageParam.pageize" :total="pageParam.total" @size-change="handleSizeChange" @current-change="handleCurrentChange" style="margin-top:2%">
+    <el-pagination background layout="total, sizes, prev, pager, next, jumper" :current-page="pageParam.pageNo" :page-sizes="[5, 10, 20, 40]" :page-size="pageParam.pageSize" :total="pageParam.total" @size-change="handleSizeChange" @current-change="handleCurrentChange" style="margin-top:2%">
     </el-pagination>
+
+    <el-dialog title="分配角色" :visible.sync="isShowEditDialog" center v-if="isShowEditDialog" width="32%">
+      <el-checkbox-group v-model="checkList">
+        <el-checkbox label="复选框 A" ></el-checkbox>
+        <el-checkbox label="复选框 B"></el-checkbox>
+        <el-checkbox label="复选框 C"></el-checkbox>
+        <el-checkbox label="禁用" disabled></el-checkbox>
+        <el-checkbox label="选中且禁用" disabled></el-checkbox>
+      </el-checkbox-group>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitRole()">确认分配</el-button>
+        <el-button @click="isShowEditDialog = false">取消</el-button>
+      </span>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { getAllRole } from '@/api/role';
-import { getAllUser } from '@/api/user';
+import { getAllUser, forbidUser } from '@/api/user';
 export default {
   data() {
     return {
+      isShowEditDialog: false,
       pageParam: {
         pageNo: 1,
-        pageize: 10
+        pageSize: 10
       },
       roles: [],
       searchForm: {
@@ -102,16 +123,31 @@ export default {
       this.$refs[formName].resetFields();
     },
     search() {
-      this.pageParam = this.pageParam.concat(this.searchForm)
+      this.pageParam = { ...this.pageParam, ...this.searchForm }
       this.reloadTable()
     },
     handleSizeChange(val) {
-      this.pageParam.pagesize = val;
+      this.pageParam.pageSize = val;
       this.reloadTable()
     },
     handleCurrentChange(val) {
       this.pageParam.currentPage = val;
       this.reloadTable()
+    },
+    handleForbid(id, status) {
+      let that = this
+      forbidUser(id, status).then(res => {
+        this.$message({
+          type: 'success',
+          message: '操作成功!'
+        });
+        setTimeout(function () {
+          that.reloadTable()
+        }, 500)
+      })
+    },
+    showAssignRole() {
+      this.isShowEditDialog = true
     }
   }
 }

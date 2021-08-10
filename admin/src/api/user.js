@@ -35,6 +35,13 @@ export function getAllUser(query) {
   return request({
     url: '/v1/user',
     method: 'get',
-    data: query
+    params: query
+  })
+}
+
+export function forbidUser(id, status) {
+  return request({
+    url: `/v1/user/${id}/status/${status}`,
+    method: 'put',
   })
 }
