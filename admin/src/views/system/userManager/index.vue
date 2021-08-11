@@ -28,7 +28,9 @@
       </el-table-column>
       <el-table-column prop="roles" label="用户角色" align="center">
         <template slot-scope="scope">
-          <span v-for="role in scope.row.roles" :key="role">{{role.roleName}}</span>
+          <span v-for="(role,index) in scope.row.roles" :key="role.id">
+            {{role.roleName}}<span v-if="scope.row.roles.length>1 && index!=scope.row.roles.length-1">，</span>
+          </span>
         </template>
       </el-table-column>
       <el-table-column prop="sex" label="性别" align="center" width="80%">
@@ -52,7 +54,7 @@
         <template slot-scope="scope">
           <el-button size="mini" type="danger" @click="handleForbid(scope.row.id,0)" v-if="scope.row.status==1">禁用</el-button>
           <el-button size="mini" type="info" @click="handleForbid(scope.row.id,1)" v-else>解禁</el-button>
-          <el-button size="mini" type="success" @click="showAssignRole(scope.row.id)">分配角色</el-button>
+          <el-button size="mini" type="success" @click="showAssignRole(scope.row)">分配角色</el-button>
           <!-- <el-button size="mini" type="primary" @click="handleEdit(scope.row)">编辑</el-button> -->
         </template>
       </el-table-column>
@@ -60,16 +62,12 @@
     <el-pagination background layout="total, sizes, prev, pager, next, jumper" :current-page="pageParam.pageNo" :page-sizes="[5, 10, 20, 40]" :page-size="pageParam.pageSize" :total="pageParam.total" @size-change="handleSizeChange" @current-change="handleCurrentChange" style="margin-top:2%">
     </el-pagination>
 
-    <el-dialog title="分配角色" :visible.sync="isShowEditDialog" center v-if="isShowEditDialog" width="32%">
+    <el-dialog title="分配角色" :visible.sync="isShowEditDialog" center v-if="isShowEditDialog" width="32%" destroy-on-close>
       <el-checkbox-group v-model="checkList">
-        <el-checkbox label="复选框 A" ></el-checkbox>
-        <el-checkbox label="复选框 B"></el-checkbox>
-        <el-checkbox label="复选框 C"></el-checkbox>
-        <el-checkbox label="禁用" disabled></el-checkbox>
-        <el-checkbox label="选中且禁用" disabled></el-checkbox>
+        <el-checkbox v-for="(item , index) in roles" :label="item.id" :key="'role_' + index">{{item.roleName}}</el-checkbox>
       </el-checkbox-group>
       <span slot="footer" class="dialog-footer">
-        <el-button type="primary" @click="submitRole()">确认分配</el-button>
+        <el-button type="primary" @click="submitRole(userId)">确认分配</el-button>
         <el-button @click="isShowEditDialog = false">取消</el-button>
       </span>
     </el-dialog>
@@ -78,10 +76,11 @@
 
 <script>
 import { getAllRole } from '@/api/role';
-import { getAllUser, forbidUser } from '@/api/user';
+import { getAllUser, forbidUser, assignUserRole } from '@/api/user';
 export default {
   data() {
     return {
+      checkList: [],
       isShowEditDialog: false,
       pageParam: {
         pageNo: 1,
@@ -146,8 +145,26 @@ export default {
         }, 500)
       })
     },
-    showAssignRole() {
+    showAssignRole(row) {
+      this.userId = row.id
       this.isShowEditDialog = true
+      this.checkList = row.roles.map(item => { return item.id })
+    },
+    submitRole(userId) {
+      let data = { data: this.checkList };
+      let that = this
+      console.log(data)
+      assignUserRole(userId, data)
+        .then(res => {
+          this.$message({
+            type: 'success',
+            message: '操作成功!'
+          });
+          setTimeout(function () {
+            that.isShowEditDialog = false
+            that.reloadTable()
+          }, 500)
+        });
     }
   }
 }

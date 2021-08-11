@@ -45,3 +45,11 @@ export function forbidUser(id, status) {
     method: 'put',
   })
 }
+
+export function assignUserRole(userId,data){
+  return request({
+    url: `/v1/userRole/${userId}`,
+    method: 'put',
+    data
+  })
+}
