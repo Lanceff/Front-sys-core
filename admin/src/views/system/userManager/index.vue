@@ -21,11 +21,6 @@
       <el-table-column prop="id" label="用户id" align="center" width="80%"></el-table-column>
       <el-table-column prop="username" label="用户名" align="center"></el-table-column>
       <el-table-column prop="nickName" label="用户昵称" align="center"></el-table-column>
-      <el-table-column prop="avatar" label="头像" align="center" width="80%">
-        <template slot-scope="scope">
-          <el-avatar size="large" shape="square" :src="scope.row.avatar"></el-avatar>
-        </template>
-      </el-table-column>
       <el-table-column prop="roles" label="用户角色" align="center">
         <template slot-scope="scope">
           <span v-for="(role,index) in scope.row.roles" :key="role.id">
@@ -41,7 +36,6 @@
         </template>
       </el-table-column>
       <el-table-column prop="email" label="邮箱" align="center"></el-table-column>
-      <el-table-column prop="birth" label="生日" align="center"></el-table-column>
       <el-table-column prop="tel" label="手机号" align="center"></el-table-column>
       <el-table-column prop="status" label="状态" align="center" width="80%">
         <template slot-scope="scope">
