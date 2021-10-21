@@ -58,7 +58,7 @@ const actions = {
       let accessedRoutes
       let { data } = response
       //如果是系统初始化搭建时，超级管理员没配置菜单，就给默认菜单
-      if (roles.includes('admin') && (!data || data.size <= 0)) {
+      if (roles.includes('admin') && (!data || data.length <= 0)) {
         accessedRoutes = adminInitRoutes
       } else {
         accessedRoutes = asyncGetRoutes(data)
